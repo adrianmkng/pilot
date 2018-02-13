@@ -13,9 +13,10 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "private" {
-  count = "${length(azs)}"
+  count = "${length(var.azs)}"
+  cidr_elems = "${split("//",var.vpc_cidr)}"
   vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "${cidrsubnet(var.vpc_cidr, 24, count.index)}"
+  cidr_block = "${cidrsubnet(var.vpc_cidr, cidr_elems[1] + 4, count.index)}"
   availability_zone = "${var.region}${var.azs[count.index]}"
 
   tags {
@@ -26,12 +27,29 @@ resource "aws_subnet" "private" {
 
 resource "aws_subnet" "public" {
   count = "${length(var.azs)}"
+  cidr_elems = "${split("//",var.vpc_cidr)}"
   vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "${cidrsubnet(var.vpc_cidr, 24, 3 + count.index)}"
+  cidr_block = "${cidrsubnet(var.vpc_cidr, cidr_elems[1] + 4, 3 + count.index)}"
   availability_zone = "${var.region}${var.azs[count.index]}"
 
   tags {
     Name = "public_${var.azs[count.index]}"
     type = "public"
+  }
+}
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = "${aws_vpc.main.id}"
+}
+
+resource "aws_route_table" "main" {
+  vpc_id = "${aws_vpc.main.id}"
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "${aws_internet_gateway.igw.id}"
+  }
+
+  tags {
+    Name = "main"
   }
 }
