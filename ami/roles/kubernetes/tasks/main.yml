@@ -1,0 +1,18 @@
+- name: install kubelet
+  get_url: 
+    url: https://storage.googleapis.com/kubernetes-release/release/v1.8.8/bin/linux/amd64/kubelet
+    dest: /usr/bin/kubelet
+    mode: 0755
+
+- name: config systemd kubelet service
+  copy:
+    src: kubelet.service
+    dest: /etc/systemd/system/kubelet.service
+
+- name: Start kubelet service
+  systemd:
+    name: kubelet
+    enabled: yes
+    state: started
+    daemon_reload: yes
+

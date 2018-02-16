@@ -1,6 +1,7 @@
 ---
-- hosts: localhost
+- hosts: all
+  become: yes
   roles:
     - docker
     - kubernetes
-    - node-exporter
+    #- node-exporter
