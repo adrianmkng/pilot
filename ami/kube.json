@@ -3,10 +3,11 @@
     {
       "type": "amazon-ebs",
       "region": "ap-southeast-2",
-      "source_ami": "ami-942dd1f6",
+      "source_ami": "ami-38708c5a",
       "instance_type": "t2.micro",
       "ssh_username": "ec2-user",
-      "ami_name": "kube-pilot-{{timestamp}}"
+      "ami_name": "kube-pilot-{{timestamp}}",
+      "associate_public_ip_address": true
     }
   ],
   "provisioners": [
