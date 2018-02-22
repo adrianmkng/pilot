@@ -4,4 +4,4 @@
   roles:
     - docker
     - kubernetes
-    #- node-exporter
+    - node-exporter
