@@ -4,60 +4,34 @@ provider "aws" {
   region     = "${var.region}"
 }
 
-terraform {
-  backend "s3" {
-    bucket = "pilot-terraform"
-    key    = "networking/vpc.tfstate"
-    region = "ap-southeast-2"
-  }
-}
-
-# iam roles
-resource "aws_iam_instance_profile" "kube_master" {
-  name = "kube_master"
-  role = "${aws_iam_role.kube_master.name}"
-}
-
-resource "aws_iam_instance_profile" "kube_node" {
-  name = "kube_node"
-  role = "${aws_iam_role.kube_node.name}"
-}
-
-resource "aws_iam_role" "kube_master" {
-  name               = "kube_master"
-  assume_role_policy = "${file("${path.module}/data/kube_master_assume.policy")}"
-}
-
-resource "aws_iam_role" "kube_node" {
-  name               = "kube_node"
-  assume_role_policy = "${file("${path.module}/data/kube_node_assume.policy")}"
-}
-
-resource "aws_iam_role_policy" "kube_master" {
-  name   = "kube_node"
-  role   = "${aws_iam_role.kube_master.name}"
-  policy = "${file("${path.module}/data/kube_master_permissions.policy")}"
-}
-
-resource "aws_iam_role_policy" "kube_node" {
-  name   = "kube_node"
-  role   = "${aws_iam_role.kube_node.name}"
-  policy = "${file("${path.module}/data/kube_node_permissions.policy")}"
-}
-
-# security groups
-resource "aws_security_group" "kube_master" {
-  name        = "kube_master_sg"
-  vpc_id      = "${aws_vpc.main.id}"
-  description = "Security group for masters"
-
+data "aws_vpc" "main" {
   tags = {
-    KubernetesCluster = "kube-pilot"
-    Name              = "kube_master_sg"
+    "Name"= "main"
   }
 }
 
+data "aws_subnet_ids" "main" {
+  vpc_id = "${data.aws_vpc.main.id}"
+  tags = {
+    "type"= "public"
+  }
+}
+  
 
-# launch configs
+resource "aws_launch_configuration" "k8s" {
+  name          = "kube_node"
+  image_id      = "ami-1ca2657e"
+  instance_type = "t2.micro"
+}
 
-# auto scaling groups
+resource "aws_autoscaling_group" "master" {
+  name                 = "kube_master"
+  launch_configuration = "${aws_launch_configuration.k8s.name}"
+  min_size             = 1
+  max_size             = 2
+  vpc_zone_identifier  = ["${data.aws_subnet_ids.main.ids}"]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
