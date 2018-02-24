@@ -1,20 +1,16 @@
-provider "aws" {
-  access_key = "${var.access_key}"
-  secret_key = "${var.secret_key}"
-  region     = "${var.region}"
-}
+provider "aws" {}
 
-resource "aws_vpc" "main" {
+resource "aws_vpc" "pilot" {
   cidr_block = "${var.vpc_cidr}"
 
   tags {
-    Name = "main"
+    Name = "pilot"
   }
 }
 
 resource "aws_subnet" "private" {
   count = "${length(var.azs)}"
-  vpc_id     = "${aws_vpc.main.id}"
+  vpc_id     = "${aws_vpc.pilot.id}"
   cidr_block = "${cidrsubnet(var.vpc_cidr, 4, count.index)}"
   availability_zone = "${var.region}${var.azs[count.index]}"
 
@@ -26,7 +22,7 @@ resource "aws_subnet" "private" {
 
 resource "aws_subnet" "public" {
   count = "${length(var.azs)}"
-  vpc_id     = "${aws_vpc.main.id}"
+  vpc_id     = "${aws_vpc.pilot.id}"
   cidr_block = "${cidrsubnet(var.vpc_cidr, 4, 3 + count.index)}"
   availability_zone = "${var.region}${var.azs[count.index]}"
 
@@ -37,18 +33,18 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_internet_gateway" "igw" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id = "${aws_vpc.pilot.id}"
 }
 
 resource "aws_route_table" "public" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id = "${aws_vpc.pilot.id}"
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = "${aws_internet_gateway.igw.id}"
   }
 
   tags {
-    Name = "main"
+    Name = "pilot"
   }
 }
 
