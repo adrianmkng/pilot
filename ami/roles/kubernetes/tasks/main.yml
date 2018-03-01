@@ -4,6 +4,14 @@
     dest: /usr/bin/kubelet
     mode: 0755
 
+- name: create kubelet directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /var/lib/kubelet
+    - /etc/kubernetes
+
 - name: config systemd kubelet service
   copy:
     src: kubelet.service
