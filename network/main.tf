@@ -1,5 +1,12 @@
 provider "aws" {}
 
+variable "region" { default = "ap-southeast-2" }
+variable "vpc_cidr" { default = "172.31.0.0/16" }
+variable "azs" {
+  type = "list"
+  default = ["a","b","c"]
+}
+
 resource "aws_vpc" "pilot" {
   cidr_block = "${var.vpc_cidr}"
 
@@ -8,28 +15,22 @@ resource "aws_vpc" "pilot" {
   }
 }
 
-resource "aws_subnet" "private" {
-  count = "${length(var.azs)}"
-  vpc_id     = "${aws_vpc.pilot.id}"
-  cidr_block = "${cidrsubnet(var.vpc_cidr, 4, count.index)}"
-  availability_zone = "${var.region}${var.azs[count.index]}"
-
-  tags {
-    Name = "private_${var.azs[count.index]}"
-    type = "private"
-  }
+module "private_subnet" {
+  source = "../terraform-subnet"
+  region = "${var.region}"
+  vpc_id = "${aws_vpc.pilot.id}"
+  subnet_cidr = "${cidrsubnet(var.vpc_cidr, 1, 1)}"
+  azs = "${var.azs}"
+  name = "private"
 }
 
-resource "aws_subnet" "public" {
-  count = "${length(var.azs)}"
-  vpc_id     = "${aws_vpc.pilot.id}"
-  cidr_block = "${cidrsubnet(var.vpc_cidr, 4, 3 + count.index)}"
-  availability_zone = "${var.region}${var.azs[count.index]}"
-
-  tags {
-    Name = "public_${var.azs[count.index]}"
-    type = "public"
-  }
+module "public_subnet" {
+  source = "../terraform-subnet"
+  region = "${var.region}"
+  vpc_id = "${aws_vpc.pilot.id}"
+  subnet_cidr = "${cidrsubnet(var.vpc_cidr, 1, 0)}"
+  azs = "${var.azs}"
+  name = "public"
 }
 
 resource "aws_internet_gateway" "igw" {
@@ -52,5 +53,5 @@ resource "aws_route_table_association" "public" {
   count = "${length(var.azs)}"
 
   route_table_id = "${aws_route_table.public.id}"
-  subnet_id = "${element(aws_subnet.public.*.id, count.index)}"
+  subnet_id = "${element(module.public_subnet.subnet_ids, count.index)}"
 }
