@@ -1,13 +1,20 @@
-- name: install kubelet
-  get_url: 
-    url: https://storage.googleapis.com/kubernetes-release/release/v1.8.8/bin/linux/amd64/kubelet
-    dest: /usr/bin/kubelet
-    mode: 0755
+- name: Add Kubernetes package key (may not workie atm)
+  rpm_key: 
+    key: https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    state: present
 
-- name: config systemd kubelet service
-  copy:
-    src: kubelet.service
-    dest: /etc/systemd/system/kubelet.service
+- name: Add Kubernetes repo
+  yum_repository:
+    name: Kubernetes
+    description: Kube repo
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg
+    gpgcheck: no
+
+- name: Install Kubernetes
+  package:
+    name: kubelet
+    state: present
 
 - name: Start kubelet service
   systemd:

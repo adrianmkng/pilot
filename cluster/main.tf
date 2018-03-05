@@ -9,13 +9,14 @@ data "terraform_remote_state" "network" {
 }
 
 resource "aws_launch_configuration" "kube_master" {
-  name          = "kube_master"
-  image_id      = "ami-1ca2657e"
+  name_prefix   = "kube-master-"
+  image_id      = "ami-da3cfab8"
   instance_type = "t2.micro"
+  key_name      = "pilot"
 }
 
 resource "aws_autoscaling_group" "master" {
-  name                 = "kube_master"
+  name                 = "${aws_launch_configuration.kube_master.name}"
   launch_configuration = "${aws_launch_configuration.kube_master.name}"
   min_size             = 1
   max_size             = 2

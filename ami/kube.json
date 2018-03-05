@@ -1,8 +1,14 @@
 {
+  "variables": {
+    "vpc_id": null,
+    "subnet_id": null
+  },
   "builders": [
     {
       "type": "amazon-ebs",
       "region": "ap-southeast-2",
+      "vpc_id": "{{user `vpc_id`}}",
+      "subnet_id": "{{user `subnet_id`}}",
       "source_ami": "ami-38708c5a",
       "instance_type": "t2.micro",
       "ssh_username": "ec2-user",
