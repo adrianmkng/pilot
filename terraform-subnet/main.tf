@@ -1,11 +1,3 @@
-variable "region" {}
-variable "name" {}
-variable "vpc_id" {}
-variable "subnet_cidr" {}
-variable "azs" {
-  type = "list"
-}
-
 resource "aws_subnet" "subnet" {
   count = "${length(var.azs)}"
   vpc_id     = "${var.vpc_id}"
@@ -18,6 +10,3 @@ resource "aws_subnet" "subnet" {
   }
 }
 
-output "subnet_ids" {
-  value = "${aws_subnet.subnet.*.id}"
-}
