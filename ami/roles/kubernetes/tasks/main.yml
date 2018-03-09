@@ -1,20 +1,23 @@
-- name: Add Kubernetes package key (may not workie atm)
+- name: Add Kubernetes package key
   rpm_key: 
-    key: https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-    state: present
+    key: https://packages.cloud.google.com/yum/doc/yum-key.gpg
 
 - name: Add Kubernetes repo
   yum_repository:
     name: Kubernetes
-    description: Kube repo
+    description: Kubernetes repo
     baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
-    gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg
-    gpgcheck: no
+    gpgkey: https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    gpgcheck: yes
 
 - name: Install Kubernetes
   package:
-    name: kubelet
+    name: "{{ item }}"
     state: present
+  with_items:
+    - kubelet
+    - kubectl
+    - kubernetes-cni
 
 - name: Start kubelet service
   systemd:
