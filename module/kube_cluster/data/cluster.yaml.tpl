@@ -1,7 +1,7 @@
 apiVersion: kops/v1alpha2
 kind: Cluster
 metadata:
-  name: ${env_domain}
+  name: ${cluster_name}
 spec:
   additionalPolicies:
     master: |
@@ -31,7 +31,7 @@ spec:
     rbac: {}
   channel: stable
   cloudProvider: aws
-  configBase: s3://${kops_s3_bucket}/${env_domain}
+  configBase: s3://${kops_s3_bucket}/${cluster_name}
   etcdClusters:
   - etcdMembers:
     - encryptedVolume: true
@@ -52,9 +52,9 @@ spec:
       batch/v2alpha1: "true"
   kubernetesApiAccess:
   - 0.0.0.0/0
-  kubernetesVersion: 1.8.6
-  masterInternalName: api.internal.${env_domain}
-  masterPublicName: api.${env_domain}
+  kubernetesVersion: ${version}
+  masterInternalName: api.internal.${cluster_name}
+  masterPublicName: api.${cluster_name}
   networkCIDR: ${vpc_cidr}
   networkID: ${vpc_id}
   networking:

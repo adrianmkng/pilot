@@ -6,12 +6,8 @@ output "vpc_cidr" {
   value = "${aws_vpc.env.cidr_block}"
 }
 
-output "domain_name" {
-  value = "${local.env_domain}"
-}
-
 output "public_subnets" {
-  value = "${var.public_subnets}"
+  value = "${aws_subnet.public.*.cidr_block}"
 }
 
 output "public_subnet_ids" {
@@ -19,7 +15,7 @@ output "public_subnet_ids" {
 }
 
 output "private_subnets" {
-  value = "${var.private_subnets}"
+  value = "${aws_subnet.private.*.cidr_block}"
 }
 
 output "private_subnet_ids" {

@@ -5,7 +5,7 @@ metadata:
     kops.k8s.io/cluster: ${cluster_name}
   name: nodes
 spec:
-  image: kope.io/k8s-1.8-debian-jessie-amd64-hvm-ebs-2018-01-05
+  image: ${ami}
   machineType: m4.2xlarge
   maxSize: 3
   minSize: 3

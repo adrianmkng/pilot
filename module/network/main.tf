@@ -2,32 +2,6 @@ terraform {
   backend "s3" {}
 }
 
-provider "aws" {
-  region = "${var.region}"
-}
-
-locals {
-  env_domain = "${var.environment}.${data.terraform_remote_state.account.domain_hosted_zone}"
-}
-
-resource "aws_route53_zone" "env_domain" {
-  name = "${local.env_domain}"
-}
-
-resource "aws_route53_record" "env_ns" {
-  zone_id = "${data.terraform_remote_state.account.domain_hosted_zone}"
-  name    = "${local.env_domain}"
-  type    = "NS"
-  ttl     = "30"
-
-  records = [
-    "${aws_route53_zone.env_domain.name_servers.0}",
-    "${aws_route53_zone.env_domain.name_servers.1}",
-    "${aws_route53_zone.env_domain.name_servers.2}",
-    "${aws_route53_zone.env_domain.name_servers.3}",
-  ]
-}
-
 resource "aws_vpc" "env" {
   cidr_block           = "${var.vpc_cidr}"
   enable_dns_hostnames = true
@@ -41,7 +15,7 @@ resource "aws_vpc" "env" {
 resource "aws_subnet" "private" {
   count             = "${length(var.zones)}"
   vpc_id            = "${aws_vpc.env.id}"
-  cidr_block        = "${element(var.private_subnets, count.index)}"
+  cidr_block        = "${cidrsubnet(var.private_subnet_cidr, ceil(log(length(var.zones), 2)), count.index)}"
   availability_zone = "${var.region}${element(var.zones, count.index)}"
 
   tags = {
@@ -53,7 +27,7 @@ resource "aws_subnet" "private" {
 resource "aws_subnet" "public" {
   count             = "${length(var.zones)}"
   vpc_id            = "${aws_vpc.env.id}"
-  cidr_block        = "${element(var.public_subnets, count.index)}"
+  cidr_block        = "${cidrsubnet(var.public_subnet_cidr, ceil(log(length(var.zones), 2)), count.index)}"
   availability_zone = "${var.region}${element(var.zones, count.index)}"
 
   tags = {
