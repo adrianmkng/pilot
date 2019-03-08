@@ -2,8 +2,6 @@ variable "region" {}
 
 variable "org" {}
 
-variable "account" {}
-
 variable "environment" {}
 
 variable "zones" {
