@@ -1,3 +1,7 @@
-variable "root_domain" {}
+variable "root_domain" {
+  type = string
+}
 
-variable "environment" {}
+variable "environment" {
+  type = string
+}

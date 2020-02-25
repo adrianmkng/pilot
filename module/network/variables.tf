@@ -1,15 +1,27 @@
-variable "region" {}
-
-variable "org" {}
-
-variable "environment" {}
-
-variable "zones" {
-  type = "list"
+variable "region" {
+  type = string
 }
 
-variable "vpc_cidr" {}
+variable "org" {
+  type = string
+}
 
-variable "private_subnet_cidr" {}
+variable "environment" {
+  type = string
+}
 
-variable "public_subnet_cidr" {}
+variable "zones" {
+  type = list(string)
+}
+
+variable "vpc_cidr" {
+  type = string
+}
+
+variable "private_subnet_cidr" {
+  type = string
+}
+
+variable "public_subnet_cidr" {
+  type = string
+}
