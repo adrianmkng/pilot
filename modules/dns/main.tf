@@ -1,5 +1,5 @@
 locals {
-  env_domain = "${var.environment}.${var.root_domain}"
+  subdomain = "${var.name}.${var.root_domain}"
 }
 
 data "aws_route53_zone" "root" {
@@ -7,12 +7,12 @@ data "aws_route53_zone" "root" {
 }
 
 resource "aws_route53_zone" "env_domain" {
-  name = local.env_domain
+  name = local.subdomain
 }
 
 resource "aws_route53_record" "env_ns" {
   zone_id = data.aws_route53_zone.root.zone_id
-  name    = local.env_domain
+  name    = local.subdomain
   type    = "NS"
   ttl     = "30"
 

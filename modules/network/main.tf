@@ -2,46 +2,55 @@ terraform {
   backend "s3" {}
 }
 
+data "aws_region" current {}
+
 resource "aws_vpc" "env" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  tags = {
-    Name = var.environment
-  }
+  tags = merge(
+  {
+    Name = var.name
+  },
+  var.vpc_tags,
+  )
 }
 
 resource "aws_subnet" "private" {
-  count             = "${length(var.zones)}"
+  count             = length(var.zones)
   vpc_id            = aws_vpc.env.id
   cidr_block        = cidrsubnet(var.private_subnet_cidr, ceil(log(length(var.zones), 2)), count.index)
-  availability_zone = "${var.region}${element(var.zones, count.index)}"
+  availability_zone = "${data.aws_region.current.name}${element(var.zones, count.index)}"
 
-  tags = {
-    Name       = "${var.environment}.${var.region}${element(var.zones, count.index)}"
-    SubnetType = "Private"
-  }
+  tags = merge(
+  {
+    Name       = "${var.name}.private-${data.aws_region.current.name}${element(var.zones, count.index)}"
+  },
+  var.private_subnet_tags,
+  )
 }
 
 resource "aws_subnet" "public" {
   count             = length(var.zones)
   vpc_id            = aws_vpc.env.id
   cidr_block        = cidrsubnet(var.public_subnet_cidr, ceil(log(length(var.zones), 2)), count.index)
-  availability_zone = "${var.region}${element(var.zones, count.index)}"
+  availability_zone = "${data.aws_region.current.name}${element(var.zones, count.index)}"
 
-  tags = {
-    Name       = "${var.environment}.utility-${var.region}${element(var.zones, count.index)}"
-    SubnetType = "Utility"
-  }
+  tags = merge(
+  {
+    Name       = "${var.name}.public-${data.aws_region.current.name}${element(var.zones, count.index)}"
+  },
+  var.public_subnet_tags,
+  )
 }
 
 resource "aws_eip" "nat" {
-  count = length(var.zones)
+  for_each = var.zones
   vpc   = true
 
   tags = {
-    Name = "${var.environment}.${var.region}${element(var.zones, count.index)}"
+    Name = "${var.name}.${data.aws_region.current.name}${each.value}"
   }
 }
 
@@ -49,7 +58,7 @@ resource "aws_internet_gateway" "env" {
   vpc_id = aws_vpc.env.id
 
   tags = {
-    Name = var.environment
+    Name = var.name
   }
 }
 
@@ -59,16 +68,16 @@ resource "aws_nat_gateway" "nat" {
   subnet_id     = element(aws_subnet.public.*.id, count.index)
 
   tags = {
-    Name = "${var.environment}.${var.region}${element(var.zones, count.index)}"
+    Name = "${var.name}.${data.aws_region.current.name}${element(var.zones, count.index)}"
   }
 }
 
 resource "aws_route_table" "private" {
-  count  = length(var.zones)
+  for_each = var.zones
   vpc_id = aws_vpc.env.id
 
   tags = {
-    Name = "${var.environment}.private-${var.region}${element(var.zones, count.index)}"
+    Name = "${var.name}.private-${data.aws_region.current.name}${each.value}"
   }
 }
 
@@ -76,7 +85,7 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.env.id
 
   tags = {
-    Name = var.environment
+    Name = var.name
   }
 }
 

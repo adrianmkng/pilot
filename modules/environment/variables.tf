@@ -1,16 +1,8 @@
-variable "region" {
-  type = string
-}
-
-variable "org" {
-  type = string
-}
-
 variable "root_domain" {
   type = string
 }
 
-variable "environment" {
+variable "name" {
   type = string
 }
 

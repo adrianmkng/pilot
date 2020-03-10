@@ -2,6 +2,6 @@ variable "root_domain" {
   type = string
 }
 
-variable "environment" {
+variable "name" {
   type = string
 }
