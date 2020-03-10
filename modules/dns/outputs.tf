@@ -1,3 +1,3 @@
 output "domain" {
-  value = local.env_domain
+  value = local.subdomain
 }

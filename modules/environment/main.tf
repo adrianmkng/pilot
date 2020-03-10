@@ -5,9 +5,7 @@ terraform {
 module "network" {
   source = "../network"
 
-  org = var.org
-  environment = var.environment
-  region = var.region
+  name = var.name
   zones = var.zones
   vpc_cidr = var.vpc_cidr
   public_subnet_cidr = var.public_subnet_cidr
@@ -17,6 +15,6 @@ module "network" {
 module "dns" {
   source = "../dns"
 
-  environment = var.environment
+  name = var.name
   root_domain = var.root_domain
 }
